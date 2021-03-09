@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using KoreFlex.Model;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,7 +64,6 @@ namespace KoreFlex.Data
                 .WithMany(t => t.TherapistHoursWorkings)
                 .HasForeignKey(thw => thw.TherapistId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             modelBuilder.Entity<Patient>()
                 .HasIndex(p => p.Id);

@@ -1,5 +1,4 @@
-﻿using KoreFlex.Model;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -7,29 +6,29 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace KoreFlex.Data
+namespace DAL
 {
-    [Table("Patients")]
-    public class Patient
+    [Table("Therapists")]
+    public class Therapist
     {
-        [Key]
         [Required]
         [MaxLength]
+        [Key]
         public string Id { get; set; }
 
         [Required]
         [StringLength(100)]
         public string FullName { get; set; }
 
+
         [Required]
-        public string Username { get; set; }
+        public string UserId { get; set; }
 
         //[ForeignKey("id")]
         //public ApplicationIdentityDbContext User { get; set; }
-        
-        //[ForeignKey("Guid")]
-        public IList<PatientMeeting> PatientMeetings { get; set; }
-        public IList<UnhandledCancelMeeting> unhandledCancelMeetings{ get; set; }
 
+        //[ForeignKey("Guid")]
+        public IList<Meeting> Meetings { get; set; }
+        public User User { get; set; }
     }
 }

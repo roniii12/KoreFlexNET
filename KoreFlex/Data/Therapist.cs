@@ -18,7 +18,11 @@ namespace KoreFlex.Data
 
         [Required]
         [StringLength(100)]
-        public string Name { get; set; }
+        public string FullName { get; set; }
+
+
+        [Required]
+        public string Username { get; set; }
 
         //[ForeignKey("id")]
         //public ApplicationIdentityDbContext User { get; set; }

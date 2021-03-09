@@ -5,11 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 
-namespace KoreFlex.Model
+namespace DAL
 {
     public class User:IdentityUser
     {
-        [MaxLength(20)]
+        [MaxLength(45)]
         public string Ip { get; set; }
+
+        public Therapist Therapist { get; set; }
+        public Patient Patient { get; set; }
     }
 }
