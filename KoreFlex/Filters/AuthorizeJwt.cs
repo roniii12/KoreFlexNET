@@ -1,17 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace KoreFlex.Filters
 {
@@ -29,7 +24,7 @@ namespace KoreFlex.Filters
             var temp = context.ActionDescriptor.EndpointMetadata;
             foreach (var typeAction in temp)
             {
-                if(typeAction.GetType().Equals(typeof(AllowAnonymousAttribute)))
+                if (typeAction.GetType().Equals(typeof(AllowAnonymousAttribute)))
                     return;
             }
             try
@@ -54,7 +49,7 @@ namespace KoreFlex.Filters
                 var stringClaimValue = securityTokenJwt.Claims.First(claim => claim.Type == "unique_name").Value;
                 var str = stringClaimValue;
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 //context.HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 context.Result = new UnauthorizedObjectResult(new

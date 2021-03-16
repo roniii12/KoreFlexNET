@@ -1,5 +1,5 @@
-﻿using DAL;
-using KoreFlex.Filters;
+﻿using BusinessLogic;
+using DAL;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,14 +28,17 @@ namespace KoreFlex
         private UserManager<User> userManager;
         private IConfiguration configuration;
         private ILogger<AccountController> logger;
+        private UserLogic UserLogic;
         public AccountController(SignInManager<User> mgr,
                  UserManager<User> usermgr, IConfiguration config,
-                 ILogger<AccountController> logger)
+                 ILogger<AccountController> logger,
+                 UserLogic userLogic)
         {
             signinManager = mgr;
             userManager = usermgr;
             configuration = config;
             this.logger = logger;
+            this.UserLogic = userLogic;
         }
 
         // GET: api/<AccountController>
@@ -52,13 +54,17 @@ namespace KoreFlex
         public async Task<IActionResult> Login([FromBody] Credentials creds)
         {
             logger.LogWarning("hello");
-            logger.LogWarning("warning",creds);
+            logger.LogWarning("warning", creds);
             logger.LogInformation("information", creds);
             logger.LogDebug("debug", creds);
             logger.LogTrace("trace", creds);
             var sig = await signinManager.PasswordSignInAsync(creds.Username, creds.Password, false, false); ;
             if (await CheckPassword(creds))
             {
+                if (!UserLogic.IsIpUserOrInsert(creds.Username, HttpContext.Request.HttpContext.Connection.RemoteIpAddress.ToString().Trim()))
+                {
+                    return Unauthorized();
+                };
                 JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
                 byte[] secret = Encoding.ASCII.GetBytes(configuration["jwtKeys:JwtSecret"]);
                 SecurityTokenDescriptor descriptor = new SecurityTokenDescriptor
@@ -114,9 +120,6 @@ namespace KoreFlex
         [Authorize(AuthenticationSchemes = "Bearer")]
         public async Task<IActionResult> Logout()
         {
-            //JwtSecurityTokenHandler handler = new JwtSecurityTokenHandler();
-            //SecurityToken sa = new SecurityTokenDescriptor();
-            return Ok(new { user = User.Identity.Name});
             await signinManager.SignOutAsync();
             return Ok();
         }
@@ -128,11 +131,8 @@ namespace KoreFlex
 
         // PUT api/<AccountController>/5
         [HttpPut("Register")]
-        //[Authorize(AuthenticationSchemes = "Bearer")]
-        //[Authorize(AuthenticationSchemes = "Identity.Application")]
-        //[TypeFilter(typeof(AuthorizeJwt))]
         public async Task<IActionResult> Put([FromBody] Credentials creds)
-        {   
+        {
             User user = new User() { Email = creds.Username, UserName = creds.Username };
             IdentityResult newUser = await userManager.CreateAsync(user, creds.Password);
             if (newUser.Succeeded)
@@ -141,9 +141,13 @@ namespace KoreFlex
         }
 
         // DELETE api/<AccountController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("delete")]
+        public async Task<IActionResult> Delete([FromBody] string userId)
         {
+            var isSuccess = await userManager.DeleteAsync(await userManager.FindByIdAsync(userId));
+            if (isSuccess.Succeeded)
+                return Ok();
+            return BadRequest();
         }
         private async Task<bool> CheckPassword(Credentials creds)
         {

@@ -1,3 +1,4 @@
+using BusinessLogic;
 using DAL;
 using KoreFlex.Filters;
 //using KoreFlex.Data;
@@ -11,9 +12,7 @@ using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,13 +20,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
-using System.Net;
-using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace KoreFlex
 {
@@ -43,6 +38,7 @@ namespace KoreFlex
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            
             services.Configure<JwtKeys>(Configuration.GetSection("jwtKeys"));
             //services.AddScoped<AuthorizeJwt>();
             //services.AddDbContext<ApplicationIdentityDbContext>(options =>
@@ -84,8 +80,9 @@ namespace KoreFlex
             //    opts.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             //    opts.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
             //})
-            .AddCookie() 
-            .AddJwtBearer(opts => {
+            .AddCookie()
+            .AddJwtBearer(opts =>
+            {
                 opts.RequireHttpsMetadata = false;
                 opts.SaveToken = true;
                 opts.TokenValidationParameters = new TokenValidationParameters
@@ -120,6 +117,8 @@ namespace KoreFlex
                 opts.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 opts.Cookie.SameSite = SameSiteMode.Strict;
                 opts.Cookie.IsEssential = true;
+                opts.ExpireTimeSpan = TimeSpan.FromMinutes(10);
+                opts.SlidingExpiration = true;
                 opts.Events = new CookieAuthenticationEvents
                 {
                     OnRedirectToLogin = async opt =>
@@ -137,7 +136,14 @@ namespace KoreFlex
                      .Build();
                 opt.Filters.Add(new AuthorizeFilter(policy));
                 opt.Filters.Add(typeof(AuthorizeJwt));
+                opt.Filters.Add(typeof(AuthorizeIp));
             });
+            //services.AddSingleton(typeof(MoodyDbContext));
+            services.AddScoped(typeof(TherapistLogic));
+            services.AddScoped(typeof(PatientLogic));
+            services.AddScoped(typeof(RoomLogic));
+            services.AddScoped(typeof(UserLogic));
+            services.AddScoped(typeof(MeetingLogic));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -181,7 +187,7 @@ namespace KoreFlex
                 if (path != null && path.ToLower().Contains("/registers"))
                 {
                     string tokenHead = context.Request.Headers["Authorization"];
-                    tokenHead = tokenHead.Replace("Bearer ","");
+                    tokenHead = tokenHead.Replace("Bearer ", "");
                     //string token = tokenHead.ToString();
                     var tokenHandler = new JwtSecurityTokenHandler();
                     var validParams = new TokenValidationParameters

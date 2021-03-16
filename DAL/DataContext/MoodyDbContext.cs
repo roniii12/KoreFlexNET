@@ -92,7 +92,7 @@ namespace DAL
                 .HasIndex(p => p.Id);
 
             modelBuilder.Entity<Meeting>()
-                .HasIndex(pm => new { pm.TherapistId, pm.PatientId })
+                .HasIndex(pm => new { pm.TherapistId, pm.PatientId, pm.startDate })
                 .IsUnique();
 
             modelBuilder.Entity<Therapist>()

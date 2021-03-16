@@ -20,6 +20,9 @@ namespace DAL
         [StringLength(100)]
         public string FullName { get; set; }
 
+        [Required]
+        [StringLength(70)]
+        public string TypeTreatment { get; set; }
 
         [Required]
         public string UserId { get; set; }
